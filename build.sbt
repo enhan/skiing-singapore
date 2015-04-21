@@ -11,7 +11,8 @@ scalacOptions in Test ++= Seq("-Yrangepos")
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "3.5" % "test",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
-  "ch.qos.logback" % "logback-classic" % "1.1.3"
+  "ch.qos.logback" % "logback-classic" % "1.1.3",
+  "org.slf4j" % "slf4j-ext" % "1.7.12"
 )
 
 // Uncomment to use Akka

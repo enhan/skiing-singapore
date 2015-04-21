@@ -17,7 +17,7 @@ object SkiingApp extends App{
     val rawMap = parser.parse(data)
     val skiMap = new SkiMap(rawMap)
     log.info("Starting computation")
-    val path = skiMap.longestAndSteepestPath()
+    val path = skiMap.longestAndSteepestPath
     log.info("Computation done")
     log.info(s"Longest and steepest path is ${path.length} long and drops from ${path.startHeight} to ${path.endHeight} for a drop of ${path.drop}")
     Http.shutdown()

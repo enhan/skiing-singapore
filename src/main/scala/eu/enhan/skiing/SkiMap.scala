@@ -1,9 +1,15 @@
 package eu.enhan.skiing
 
+import org.slf4j.LoggerFactory
+import org.slf4j.profiler.Profiler
+
 /**
  * @author Emmanuel Nhan
  */
 class SkiMap(val rawMap: Map[(Int, Int), Int]) {
+
+  val log = LoggerFactory.getLogger(classOf[SkiMap])
+  lazy val longestAndSteepestPath = computeLongestAndSteepestPath()
 
   implicit object PathOrdering extends Ordering[Path]{
     override def compare(x: Path, y: Path): Int = {
@@ -29,12 +35,17 @@ class SkiMap(val rawMap: Map[(Int, Int), Int]) {
     case ((x, y), h) => (x, y) -> Tile(h, feeder(() =>fullMap)(x, y))
   }
 
-  def longestAndSteepestPath(): Path = {
-    fullMap.values.map{tile => tile.longestAndSteepestPath}.max
+  private def computeLongestAndSteepestPath(): Path = {
+    val profiler = new Profiler("PATH FINDER")
+    profiler.setLogger(log)
+    profiler.start("A")
+    val res = fullMap.values.map{tile => tile.longestAndSteepestPath}.max
+    profiler.stop().print()
+    res
   }
 
   def solution() = {
-    val result = longestAndSteepestPath()
+    val result = longestAndSteepestPath
     s"${result.length}${result.drop}"
   }
 
