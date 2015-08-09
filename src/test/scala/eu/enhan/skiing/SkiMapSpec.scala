@@ -8,7 +8,7 @@ import org.specs2.mutable._
 class SkiMapSpec extends Specification{
 
   "A ski map " should {
-    "return the correct longest and steepest path " in {
+    "return the correct longest and steepest path on small map " in {
       val skiMap = new SkiMap(Map(
         (0,0) -> 4,
         (0,1) -> 8,

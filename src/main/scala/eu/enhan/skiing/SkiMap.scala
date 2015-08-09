@@ -10,6 +10,7 @@ class SkiMap(val rawMap: Map[(Int, Int), Int]) {
 
   val log = LoggerFactory.getLogger(classOf[SkiMap])
   lazy val longestAndSteepestPath = computeLongestAndSteepestPath()
+  lazy val allPaths = findAllPath()
 
   implicit object PathOrdering extends Ordering[Path]{
     override def compare(x: Path, y: Path): Int = {
@@ -32,14 +33,22 @@ class SkiMap(val rawMap: Map[(Int, Int), Int]) {
   }
 
   lazy val fullMap: Map[(Int, Int), Tile ] = rawMap.map{
-    case ((x, y), h) => (x, y) -> Tile(h, feeder(() =>fullMap)(x, y))
+    case ((x, y), h) => (x, y) -> Tile(x, y, h, feeder(() =>fullMap)(x, y))
+  }
+
+  private def findAllPath(): Iterable[Path] = {
+    val profiler = new Profiler("PATH FINDER")
+    profiler.setLogger(log)
+    profiler.start("BUILD SOLUTIONS FOR ALL TILES")
+    val paths = fullMap.values.map{tile => tile.longestAndSteepestPath}
+    profiler.stop().print()
+    paths
   }
 
   private def computeLongestAndSteepestPath(): Path = {
-    val profiler = new Profiler("PATH FINDER")
-    profiler.setLogger(log)
-    profiler.start("A")
-    val res = fullMap.values.map{tile => tile.longestAndSteepestPath}.max
+    val profiler = new Profiler("Find best solution")
+    profiler.start("FIND MAX")
+    val res = allPaths.max
     profiler.stop().print()
     res
   }
@@ -49,11 +58,15 @@ class SkiMap(val rawMap: Map[(Int, Int), Int]) {
     s"${result.length}${result.drop}"
   }
 
+  def pathFor(i: Int, j: Int) = fullMap((i, j)).longestAndSteepestPath
+
+  def sortedResults = allPaths.toList.sorted
+
   case class Path(startHeight: Int, endHeight: Int, length: Int, stack: List[Tile]){
     def drop = startHeight - endHeight
   }
 
-  case class Tile(height: Int, neighbors: () => List[Tile]) {
+  case class Tile(x: Int, y: Int, height: Int, neighbors: () => List[Tile]) {
 
     lazy val accessibleNeighbors =  neighbors.apply().filter(n => n.height < height)
     lazy val longestAndSteepestPath = computeLongestAndSteepestPath()
@@ -61,10 +74,11 @@ class SkiMap(val rawMap: Map[(Int, Int), Int]) {
     private def computeLongestAndSteepestPath(): Path = {
       accessibleNeighbors match{
         case Nil => Path(height, height, 1, List(this))
-        case _ => val best = accessibleNeighbors.map{n =>
-            n.computeLongestAndSteepestPath()
+        case _ => accessibleNeighbors.map{n =>
+            val p = n.computeLongestAndSteepestPath()
+            // Include this node
+            Path(height, p.endHeight, p.length + 1, this :: p.stack)
           }.max
-          Path(height, best.endHeight, best.length + 1 , this :: best.stack)
       }
     }
   }
