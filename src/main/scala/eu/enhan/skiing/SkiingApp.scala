@@ -25,7 +25,7 @@ object SkiingApp extends App{
   log.info("Dowloading & parsing the map")
   val profiler = new Profiler("Downloader")
   profiler.setLogger(log)
-  profiler.start("Dowload and build raw map")
+  profiler.start("Download and build raw map")
 
   val sourceMap = downloadFlow.runFold(Map[(Int, Int), Int]()){ (acc, t) =>  acc + t}
 
