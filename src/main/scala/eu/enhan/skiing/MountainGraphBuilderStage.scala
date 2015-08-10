@@ -8,7 +8,7 @@ case class SkiGraph(maxima: List[MountainPoint], index: Map[(Int, Int), Mountain
 /**
  * @author Emmanuel Nhan
  */
-class MountainGraphBuilderStage extends DetachedStage[MountainPoint, SkiGraph]{
+class MountainGraphBuilderStage(val height: Int, val width: Int) extends DetachedStage[MountainPoint, SkiGraph]{
 
   private var mountainMap =  Map[(Int, Int), MountainPoint]()
   private var localMax = List[MountainPoint]()
@@ -44,7 +44,7 @@ class MountainGraphBuilderStage extends DetachedStage[MountainPoint, SkiGraph]{
         val newPoint = p.copy(accessiblePoints =  (mountainPoint.x, mountainPoint.y) :: p.accessiblePoints)
         mountainMap = mountainMap + ((p.x, p.y) -> newPoint)
         // check if otherPoint is a local max
-        if (newPoint.accessiblePoints.length == 4)
+        if (newPoint.accessiblePoints.length == nbOfAssociatedToConsiderMax(newPoint.x, newPoint.y))
           localMax = newPoint :: localMax
         mountainPoint
       case Some(p) if p.z < mountainPoint.z => // new point is higher only append otherPoint to accessible points
@@ -52,6 +52,21 @@ class MountainGraphBuilderStage extends DetachedStage[MountainPoint, SkiGraph]{
       case _ => // Nothing to do. No otherPoint or same z
         mountainPoint
     }
+  }
+
+  /**
+   * Function to deal with the edges
+   *
+   * @param x
+   * @param y
+   * @return
+   */
+  private def nbOfAssociatedToConsiderMax(x: Int, y: Int): Int = {
+    val minusOnXMin = if (x == 0) -1 else 0
+    val minusOnXMax = if (x == width-1) -1 else 0
+    val minusOnYMin = if (y == 0) -1 else 0
+    val minusOnYMax = if (y == height-1) -1 else 0
+    4 + minusOnXMin + minusOnYMin + minusOnXMax + minusOnYMax
   }
 
   override def onPush(elem: MountainPoint, ctx: DetachedContext[SkiGraph]): UpstreamDirective = {
