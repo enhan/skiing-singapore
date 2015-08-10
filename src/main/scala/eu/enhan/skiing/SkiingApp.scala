@@ -22,7 +22,7 @@ object SkiingApp extends App{
   val httpFlow = Http().cachedHostConnectionPool[Int](host = "s3-ap-southeast-1.amazonaws.com")
   val downloadFlow = Source.single((Get("/geeks.redmart.com/coding-problems/map.txt"), 0)).via(httpFlow).
     via(StreamMapParser.parser)
-  log.info("Dowloading & parsing the map")
+  log.info("Downloading & parsing the map")
   val profiler = new Profiler("Downloader")
   profiler.setLogger(log)
   profiler.start("Download and build raw map")
