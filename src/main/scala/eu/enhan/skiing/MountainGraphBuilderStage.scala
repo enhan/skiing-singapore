@@ -1,9 +1,7 @@
 package eu.enhan.skiing
 
-import akka.event.slf4j.Logger
 import akka.stream.stage._
 import eu.enhan.skiing.model.MountainPoint
-import org.slf4j.LoggerFactory
 
 
 case class SkiGraph(maxima: List[MountainPoint], index: Map[(Int, Int), MountainPoint])
@@ -13,7 +11,6 @@ case class SkiGraph(maxima: List[MountainPoint], index: Map[(Int, Int), Mountain
  */
 class MountainGraphBuilderStage(val height: Int, val width: Int) extends DetachedStage[MountainPoint, SkiGraph]{
 
-  val log = LoggerFactory.getLogger(classOf[MountainGraphBuilderStage])
 
   private var mountainMap =  Map[(Int, Int), MountainPoint]()
   private var localMax = List[MountainPoint]()
@@ -87,7 +84,6 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
     // We only emit downstream if the source upstream is finishing
     if (ctx.isFinishing){
       // we can now realease the data
-      log.info("Upstream is done. Releasing data for downstream")
       ctx.pushAndFinish(SkiGraph(localMax, mountainMap))
     } else {
       ctx.holdDownstream()
@@ -96,7 +92,6 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
 
   override def onUpstreamFinish(ctx: DetachedContext[SkiGraph]): TerminationDirective = {
     // No questions asked : we absorb termination, as this is it, the streaming of the map is done !
-    log.info("Upstream is done")
     ctx.absorbTermination()
   }
 }

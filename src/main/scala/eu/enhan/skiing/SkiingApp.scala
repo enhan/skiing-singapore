@@ -34,7 +34,7 @@ object SkiingApp extends App{
     profiler.start("From Zero to hero")
     in
   }.via(
-    StreamSolver.solverFlow.withAttributes(Attributes.logLevels(onElement = Logging.WarningLevel))
+    StreamSolver.solverFlow
   ).runForeach{ path =>
     log.info(s"Wining path is ${path.length} long and drops from ${path.startHeight} to ${path.endHeight} for a drop of ${path.drop}")
   }
