@@ -5,6 +5,7 @@ import akka.stream.FlowShape
 import akka.stream.io.Framing
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import eu.enhan.skiing.model.MountainPoint
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,10 +39,10 @@ object StreamMapParser {
         val a = for{
           (cell, j) <- line.split(" ").zipWithIndex
         } yield {
-          (i, j) -> cell.toInt
+          MountainPoint(i, j, cell.toInt)
         }
         a.toList
-      }.mapConcat(identity).map{e => e})
+      }.mapConcat(identity))
 
       s ~> merge.in0 ; merge.out ~> tupleBuilder
       mapper.outlet ~> merge.in1

@@ -1,6 +1,9 @@
 package eu.enhan.skiing
 
+import akka.event.slf4j.Logger
 import akka.stream.stage._
+import eu.enhan.skiing.model.MountainPoint
+import org.slf4j.LoggerFactory
 
 
 case class SkiGraph(maxima: List[MountainPoint], index: Map[(Int, Int), MountainPoint])
@@ -9,6 +12,8 @@ case class SkiGraph(maxima: List[MountainPoint], index: Map[(Int, Int), Mountain
  * @author Emmanuel Nhan
  */
 class MountainGraphBuilderStage(val height: Int, val width: Int) extends DetachedStage[MountainPoint, SkiGraph]{
+
+  val log = LoggerFactory.getLogger(classOf[MountainGraphBuilderStage])
 
   private var mountainMap =  Map[(Int, Int), MountainPoint]()
   private var localMax = List[MountainPoint]()
@@ -21,6 +26,7 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
    * @param mountainPoint
    */
   private def appendNode(mountainPoint: MountainPoint): Unit = {
+
     // we know parsing is done from the top left corner to the bottom right corner.
     // So we find otherPoint and east for this node if there is any
 
@@ -72,6 +78,7 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
   override def onPush(elem: MountainPoint, ctx: DetachedContext[SkiGraph]): UpstreamDirective = {
     // We need to append a new element to the buffer
     appendNode(elem)
+
     // Ask for more from upstream
     ctx.pull()
   }
@@ -80,8 +87,8 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
     // We only emit downstream if the source upstream is finishing
     if (ctx.isFinishing){
       // we can now realease the data
-      if (ctx.isHoldingUpstream)  ctx.pushAndPull(SkiGraph(localMax, mountainMap)) // This should never happen as we are never holding upstream
-      else ctx.push(SkiGraph(localMax, mountainMap))
+      log.info("Upstream is done. Releasing data for downstream")
+      ctx.pushAndFinish(SkiGraph(localMax, mountainMap))
     } else {
       ctx.holdDownstream()
     }
@@ -89,6 +96,7 @@ class MountainGraphBuilderStage(val height: Int, val width: Int) extends Detache
 
   override def onUpstreamFinish(ctx: DetachedContext[SkiGraph]): TerminationDirective = {
     // No questions asked : we absorb termination, as this is it, the streaming of the map is done !
+    log.info("Upstream is done")
     ctx.absorbTermination()
   }
 }
